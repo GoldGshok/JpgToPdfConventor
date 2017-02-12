@@ -107,7 +107,7 @@ void MainWindow::createPdf()
         file++;
         counter++;
 
-        ui->statusBar->showMessage(QString("Progress files %1/%2").arg(counter,_listFiles.size()));
+        ui->statusBar->showMessage(QString("Progress files %1/%2").arg(counter).arg(_listFiles.size()));
 
         while (file != _listFiles.end())
         {
@@ -141,7 +141,7 @@ void MainWindow::createPdf()
             counter++;
             file++;
 
-            ui->statusBar->showMessage(QString("Progress files %1/%2").arg(counter,_listFiles.size()));
+            ui->statusBar->showMessage(QString("Progress files %1/%2").arg(counter).arg(_listFiles.size()));
         }
         painter.end();
 
