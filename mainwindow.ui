@@ -6,21 +6,27 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>579</width>
-    <height>242</height>
+    <width>625</width>
+    <height>226</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>ImagesToPdf Conventer</string>
   </property>
+  <property name="iconSize">
+   <size>
+    <width>90</width>
+    <height>79</height>
+   </size>
+  </property>
   <widget class="QWidget" name="centralWidget">
-   <widget class="QWidget" name="">
+   <widget class="QWidget" name="layoutWidget">
     <property name="geometry">
      <rect>
       <x>20</x>
       <y>20</y>
-      <width>541</width>
-      <height>156</height>
+      <width>581</width>
+      <height>129</height>
      </rect>
     </property>
     <layout class="QVBoxLayout" name="verticalLayout_3">
@@ -89,7 +95,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>579</width>
+     <width>625</width>
      <height>21</height>
     </rect>
    </property>

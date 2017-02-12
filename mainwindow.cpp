@@ -10,6 +10,10 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->btnSelectPathInput, SIGNAL(released()), this, SLOT(setPathInput()));
     connect(ui->btnSelectPathOutput, SIGNAL(released()), this, SLOT(setPathOutPut()));
     connect(ui->btnConvert, SIGNAL(released()), this, SLOT(createPdf()));
+
+    //set default output path
+    _pathOutput = QDir::absolutePath();
+    ui->editPathOutput->setText(_pathOutput);
 }
 
 MainWindow::~MainWindow()
@@ -40,8 +44,6 @@ void MainWindow::setPathInput()
                   {
                     return collator.compare(file1, file2) < 0;
                   });
-        //set default output path
-        _pathOutput = _pathInput;
     }
 }
 

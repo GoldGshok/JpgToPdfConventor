@@ -7,5 +7,7 @@ int main(int argc, char *argv[])
     MainWindow w;
     w.show();
 
+    w.setWindowIcon(QIcon(QString(a.applicationDirPath() + "/icon.ico")));
+
     return a.exec();
 }
