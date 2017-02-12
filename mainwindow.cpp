@@ -12,7 +12,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->btnConvert, SIGNAL(released()), this, SLOT(createPdf()));
 
     //set default output path
-    _pathOutput = QDir::absolutePath();
+    _pathOutput = QCoreApplication::applicationDirPath();
     ui->editPathOutput->setText(_pathOutput);
 }
 
@@ -24,11 +24,23 @@ MainWindow::~MainWindow()
 void MainWindow::setPathInput()
 {
     //get input directory path
-    _pathInput = QFileDialog::getExistingDirectory(this,
+    if (_pathInput.isEmpty())
+    {
+        _pathInput = QFileDialog::getExistingDirectory(this,
                                QString::fromUtf8("Открыть папку"),
-                               QDir::currentPath(),
+                               QCoreApplication::applicationDirPath(),
                                QFileDialog::ShowDirsOnly
                                | QFileDialog::DontResolveSymlinks);
+    }
+    else
+    {
+        _pathInput = QFileDialog::getExistingDirectory(this,
+                               QString::fromUtf8("Открыть папку"),
+                               _pathInput,
+                               QFileDialog::ShowDirsOnly
+                               | QFileDialog::DontResolveSymlinks);
+    }
+
     ui->editPathInput->setText(_pathInput);
 
     //get list jpg files
