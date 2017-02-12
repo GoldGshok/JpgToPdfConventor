@@ -6,48 +6,82 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>570</width>
-    <height>309</height>
+    <width>579</width>
+    <height>242</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>ImagesToPdf Conventer</string>
   </property>
   <widget class="QWidget" name="centralWidget">
-   <widget class="QWidget" name="horizontalLayoutWidget">
+   <widget class="QWidget" name="">
     <property name="geometry">
      <rect>
-      <x>50</x>
+      <x>20</x>
       <y>20</y>
-      <width>471</width>
-      <height>31</height>
+      <width>541</width>
+      <height>156</height>
      </rect>
     </property>
-    <layout class="QHBoxLayout" name="horizontalLayout">
+    <layout class="QVBoxLayout" name="verticalLayout_3">
      <item>
-      <widget class="QLineEdit" name="editPath"/>
+      <layout class="QVBoxLayout" name="verticalLayout">
+       <item>
+        <widget class="QLabel" name="inputLabel">
+         <property name="text">
+          <string>Set path to images</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout">
+         <item>
+          <widget class="QLineEdit" name="editPathInput"/>
+         </item>
+         <item>
+          <widget class="QPushButton" name="btnSelectPathInput">
+           <property name="text">
+            <string>...</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+      </layout>
      </item>
      <item>
-      <widget class="QPushButton" name="btnSelectPath">
+      <layout class="QVBoxLayout" name="verticalLayout_2">
+       <item>
+        <widget class="QLabel" name="outputLabel">
+         <property name="text">
+          <string>Set path to pdf (default intput path)</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_2">
+         <item>
+          <widget class="QLineEdit" name="editPathOutput"/>
+         </item>
+         <item>
+          <widget class="QPushButton" name="btnSelectPathOutput">
+           <property name="text">
+            <string>...</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+      </layout>
+     </item>
+     <item>
+      <widget class="QPushButton" name="btnConvert">
        <property name="text">
-        <string>...</string>
+        <string>Convert</string>
        </property>
       </widget>
      </item>
     </layout>
-   </widget>
-   <widget class="QPushButton" name="btnConvert">
-    <property name="geometry">
-     <rect>
-      <x>230</x>
-      <y>210</y>
-      <width>75</width>
-      <height>23</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Convert</string>
-    </property>
    </widget>
   </widget>
   <widget class="QMenuBar" name="menuBar">
@@ -55,7 +89,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>570</width>
+     <width>579</width>
      <height>21</height>
     </rect>
    </property>

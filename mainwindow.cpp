@@ -7,7 +7,8 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    connect(ui->btnSelectPath, SIGNAL(released()), this, SLOT(setPath()));
+    connect(ui->btnSelectPathInput, SIGNAL(released()), this, SLOT(setPathInput()));
+    connect(ui->btnSelectPathOutput, SIGNAL(released()), this, SLOT(setPathOutPut()));
     connect(ui->btnConvert, SIGNAL(released()), this, SLOT(createPdf()));
 }
 
@@ -16,18 +17,18 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-void MainWindow::setPath()
+void MainWindow::setPathInput()
 {
-    //get directory path
-    _path = QFileDialog::getExistingDirectory(this,
+    //get input directory path
+    _pathInput = QFileDialog::getExistingDirectory(this,
                                QString::fromUtf8("Открыть папку"),
                                QDir::currentPath(),
                                QFileDialog::ShowDirsOnly
                                | QFileDialog::DontResolveSymlinks);
-    ui->editPath->setText(_path);
+    ui->editPathInput->setText(_pathInput);
 
     //get list jpg files
-    if (!_path.isEmpty())
+    if (!_pathInput.isEmpty())
     {
         _listFiles = getListFiles();
         QCollator collator;
@@ -39,12 +40,25 @@ void MainWindow::setPath()
                   {
                     return collator.compare(file1, file2) < 0;
                   });
+        //set default output path
+        _pathOutput = _pathInput;
     }
+}
+
+void MainWindow::setPathOutPut()
+{
+    //get output directory path
+    _pathOutput = QFileDialog::getExistingDirectory(this,
+                               QString::fromUtf8("Открыть папку"),
+                               QDir::currentPath(),
+                               QFileDialog::ShowDirsOnly
+                               | QFileDialog::DontResolveSymlinks);
+    ui->editPathOutput->setText(_pathOutput);
 }
 
 QStringList MainWindow::getListFiles()
 {
-    QDir dir(_path);
+    QDir dir(_pathInput);
     //set output pdf file name
     _fileName = dir.dirName() + ".pdf";
     //return files name in directory
@@ -53,34 +67,70 @@ QStringList MainWindow::getListFiles()
 
 void MainWindow::createPdf()
 {
-    QPdfWriter writer(_fileName);
-    //add images to pdf file
-    QPainter painter(&writer);
-
-    writer.setPageSize(QPagedPaintDevice::A4);
-
-    foreach (QString file, _listFiles)
+    try
     {
-        QImage image(_path + "/" + file);
+        QPdfWriter writer(_pathOutput + "/" + _fileName);
+        //add images to pdf file
+        writer.setPageSize(QPagedPaintDevice::A4);
+
+        QStringList::iterator file = _listFiles.begin();
 
         int width;
         int height;
+        int counter = 0;
 
+        QString filename(_pathInput + "/" + *file);
+
+        QImage image(filename);
         //set orientation
         if (image.height() > image.width())
         {
-            writer.setOrientation(QPageLayout::Portrait);
-            width = writer.width();
-            height = writer.height();
+            writer.setPageOrientation(QPageLayout::Portrait);
         }
         else
         {
-            writer.setOrientation(QPageLayout::Landscape);
-            height = writer.width();
-            width = writer.height();
+            writer.setPageOrientation(QPageLayout::Landscape);
         }
 
+        width = writer.width();
+        height = writer.height();
+
+        QPainter painter(&writer);
+
         painter.drawImage(QRect(
+                        0,
+                        0,
+                        width,
+                        height),
+                        image
+                      );
+        file++;
+        counter++;
+
+        ui->statusBar->showMessage(QString("Progress files %1/%2").arg(counter,_listFiles.size()));
+
+        while (file != _listFiles.end())
+        {
+            filename = QString(_pathInput + "/" + *file);
+            image = QImage(filename);
+
+            //set orientation
+            if (image.height() > image.width())
+            {
+                writer.setPageOrientation(QPageLayout::Portrait);
+            }
+            else
+            {
+                writer.setPageOrientation(QPageLayout::Landscape);
+            }
+
+            width = writer.width();
+            height = writer.height();
+
+            //create new pdf page
+            writer.newPage();
+
+            painter.drawImage(QRect(
                             0,
                             0,
                             width,
@@ -88,13 +138,19 @@ void MainWindow::createPdf()
                             image
                           );
 
-        //create new page
-        writer.newPage();
-    }
-    painter.end();
+            counter++;
+            file++;
 
-    QMessageBox msgBox;
-    msgBox.setText("The PDF file is created");
-    msgBox.exec();
+            ui->statusBar->showMessage(QString("Progress files %1/%2").arg(counter,_listFiles.size()));
+        }
+        painter.end();
+
+        QMessageBox msgBox;
+        msgBox.setText("The PDF file is created");
+        msgBox.exec();
+    }
+    catch (...)
+    {
+    }
 }
 

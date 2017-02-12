@@ -23,12 +23,14 @@ public:
 
     QStringList getListFiles();
 public slots:
-    void setPath();
+    void setPathInput();
+    void setPathOutPut();
     void createPdf();
 
 private:
     Ui::MainWindow *ui;
-    QString _path;
+    QString _pathInput;
+    QString _pathOutput;
     QString _fileName;
     QStringList _listFiles;
 };
