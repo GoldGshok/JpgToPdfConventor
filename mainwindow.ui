@@ -42,7 +42,14 @@
        <item>
         <layout class="QHBoxLayout" name="horizontalLayout">
          <item>
-          <widget class="QLineEdit" name="editPathInput"/>
+          <widget class="QLineEdit" name="editPathInput">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
+          </widget>
          </item>
          <item>
           <widget class="QPushButton" name="btnSelectPathInput">
@@ -67,7 +74,14 @@
        <item>
         <layout class="QHBoxLayout" name="horizontalLayout_2">
          <item>
-          <widget class="QLineEdit" name="editPathOutput"/>
+          <widget class="QLineEdit" name="editPathOutput">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
+          </widget>
          </item>
          <item>
           <widget class="QPushButton" name="btnSelectPathOutput">

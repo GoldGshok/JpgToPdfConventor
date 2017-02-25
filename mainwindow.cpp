@@ -43,20 +43,8 @@ void MainWindow::setPathInput()
 
     ui->editPathInput->setText(_pathInput);
 
-    //get list jpg files
-    if (!_pathInput.isEmpty())
-    {
-        _listFiles = getListFiles();
-        QCollator collator;
-
-        collator.setNumericMode(true);
-        std::sort(_listFiles.begin(),
-                  _listFiles.end(),
-                  [&collator](const QString &file1, const QString &file2)
-                  {
-                    return collator.compare(file1, file2) < 0;
-                  });
-    }
+    _listDirs.clear();
+    _listDirs = getListDirs(QDir(_pathInput));
 }
 
 void MainWindow::setPathOutPut()
@@ -70,64 +58,69 @@ void MainWindow::setPathOutPut()
     ui->editPathOutput->setText(_pathOutput);
 }
 
-QStringList MainWindow::getListFiles()
+QStringList MainWindow::getListFiles(QString dirName)
 {
-    QDir dir(_pathInput);
+    QDir dir(dirName);
     //set output pdf file name
     _fileName = dir.dirName() + ".pdf";
     //return files name in directory
     return dir.entryList(QStringList("*.*"), QDir::Files, QDir::Name);
 }
 
+QFileInfoList MainWindow::getListDirs(const QDir& dir)
+{
+    if (!dir.exists())
+        qDebug() << "Error get dir!";
+
+    QFileInfoList list;
+
+    list.append(dir.entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot));
+
+    foreach (QFileInfo currentDir, list)
+    {
+        list.append(getListDirs(QDir(currentDir.absoluteFilePath())));
+    }
+
+    return list;
+}
+
 void MainWindow::createPdf()
 {
-    try
+    foreach (QFileInfo dir, _listDirs)
     {
-        QPdfWriter writer(_pathOutput + "/" + _fileName);
-        //add images to pdf file
-        writer.setPageSize(QPagedPaintDevice::A4);
-
-        QStringList::iterator file = _listFiles.begin();
-
-        int width;
-        int height;
-        int counter = 0;
-
-        QString filename(_pathInput + "/" + *file);
-
-        QImage image(filename);
-        //set orientation
-        if (image.height() > image.width())
+        _listFiles = getListFiles(dir.absoluteFilePath());
+        if (!_listFiles.isEmpty())
         {
-            writer.setPageOrientation(QPageLayout::Portrait);
+            QCollator collator;
+
+            collator.setNumericMode(true);
+            std::sort(_listFiles.begin(),
+                      _listFiles.end(),
+                      [&collator](const QString &file1, const QString &file2)
+                      {
+                        return collator.compare(file1, file2) < 0;
+                      });
         }
         else
         {
-            writer.setPageOrientation(QPageLayout::Landscape);
+            continue;
         }
 
-        width = writer.width();
-        height = writer.height();
-
-        QPainter painter(&writer);
-
-        painter.drawImage(QRect(
-                        0,
-                        0,
-                        width,
-                        height),
-                        image
-                      );
-        file++;
-        counter++;
-
-        ui->statusBar->showMessage(QString("Progress files %1/%2").arg(counter).arg(_listFiles.size()));
-
-        while (file != _listFiles.end())
+        try
         {
-            filename = QString(_pathInput + "/" + *file);
-            image = QImage(filename);
+            QPdfWriter writer(_pathOutput + "/" + _fileName);
+            //add images to pdf file
+            writer.setPageSize(QPagedPaintDevice::A4);
 
+            QStringList::iterator file = _listFiles.begin();
+
+            int width;
+            int height;
+            int counter = 0;
+
+            QString filename(dir.absoluteFilePath() + "/" + *file);
+
+            QImage image(filename);
             //set orientation
             if (image.height() > image.width())
             {
@@ -141,10 +134,42 @@ void MainWindow::createPdf()
             width = writer.width();
             height = writer.height();
 
-            //create new pdf page
-            writer.newPage();
+            QPainter painter(&writer);
 
             painter.drawImage(QRect(
+                        0,
+                        0,
+                        width,
+                        height),
+                        image
+                      );
+            file++;
+            counter++;
+
+            ui->statusBar->showMessage(QString("Progress files %1/%2").arg(counter).arg(_listFiles.size()));
+
+            while (file != _listFiles.end())
+            {
+                filename = QString(dir.absoluteFilePath() + "/" + *file);
+                image = QImage(filename);
+
+                //set orientation
+                if (image.height() > image.width())
+                {
+                    writer.setPageOrientation(QPageLayout::Portrait);
+                }
+                else
+                {
+                    writer.setPageOrientation(QPageLayout::Landscape);
+                }
+
+                width = writer.width();
+                height = writer.height();
+
+                //create new pdf page
+                writer.newPage();
+
+                painter.drawImage(QRect(
                             0,
                             0,
                             width,
@@ -152,19 +177,20 @@ void MainWindow::createPdf()
                             image
                           );
 
-            counter++;
-            file++;
+                counter++;
+                file++;
 
-            ui->statusBar->showMessage(QString("Progress files %1/%2").arg(counter).arg(_listFiles.size()));
+                ui->statusBar->showMessage(QString("Progress files %1/%2").arg(counter).arg(_listFiles.size()));
+            }
+            painter.end();
         }
-        painter.end();
+        catch (...)
+        {
+        }
+    }
 
-        QMessageBox msgBox;
-        msgBox.setText("The PDF file is created");
-        msgBox.exec();
-    }
-    catch (...)
-    {
-    }
+    QMessageBox msgBox;
+    msgBox.setText("The procedure is end!");
+    msgBox.exec();
 }
 

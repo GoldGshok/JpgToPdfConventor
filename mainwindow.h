@@ -8,6 +8,7 @@
 #include <QPainter>
 #include <QMessageBox>
 #include <QCollator>
+#include <QDebug>
 
 namespace Ui {
 class MainWindow;
@@ -21,7 +22,8 @@ public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
 
-    QStringList getListFiles();
+    QStringList getListFiles(QString dirName);
+    QFileInfoList getListDirs(const QDir& dirName);
 public slots:
     void setPathInput();
     void setPathOutPut();
@@ -33,6 +35,7 @@ private:
     QString _pathOutput;
     QString _fileName;
     QStringList _listFiles;
+    QFileInfoList _listDirs;
 };
 
 #endif // MAINWINDOW_H
