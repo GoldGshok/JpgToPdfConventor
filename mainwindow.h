@@ -23,7 +23,11 @@ public:
     ~MainWindow();
 
     QStringList getListFiles(QString dirName);
-    QFileInfoList getListDirs(const QDir& dirName);
+    void getListDirs(const QDir& dirName, QFileInfoList& list);
+
+    void setJpegPath(QString&);
+    void setPdfPath(QString&);
+
 public slots:
     void setPathInput();
     void setPathOutPut();

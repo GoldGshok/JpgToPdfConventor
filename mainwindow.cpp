@@ -44,7 +44,7 @@ void MainWindow::setPathInput()
     ui->editPathInput->setText(_pathInput);
 
     _listDirs.clear();
-    _listDirs = getListDirs(QDir(_pathInput));
+    getListDirs(QDir(_pathInput), _listDirs);
 }
 
 void MainWindow::setPathOutPut()
@@ -67,21 +67,35 @@ QStringList MainWindow::getListFiles(QString dirName)
     return dir.entryList(QStringList("*.*"), QDir::Files, QDir::Name);
 }
 
-QFileInfoList MainWindow::getListDirs(const QDir& dir)
+void MainWindow::getListDirs(const QDir& dir, QFileInfoList& list)
 {
     if (!dir.exists())
         qDebug() << "Error get dir!";
 
-    QFileInfoList list;
+    QFileInfoList temp;
 
-    list.append(dir.entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot));
+    temp.append(dir.entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot));
 
-    foreach (QFileInfo currentDir, list)
+    if (temp.isEmpty())
     {
-        list.append(getListDirs(QDir(currentDir.absoluteFilePath())));
+        list.append(QFileInfo(dir.absolutePath()));
+        return;
     }
 
-    return list;
+    foreach (QFileInfo currentDir, temp)
+    {
+        getListDirs(QDir(currentDir.absoluteFilePath()), list);
+    }
+}
+
+void MainWindow::setJpegPath(QString &path)
+{
+    ui->editPathInput->setText(path);
+}
+
+void MainWindow::setPdfPath(QString &path)
+{
+    ui->editPathOutput->setText(path);
 }
 
 void MainWindow::createPdf()
@@ -106,6 +120,7 @@ void MainWindow::createPdf()
             continue;
         }
 
+        QImage image;
         try
         {
             QPdfWriter writer(_pathOutput + "/" + _fileName);
@@ -120,7 +135,13 @@ void MainWindow::createPdf()
 
             QString filename(dir.absoluteFilePath() + "/" + *file);
 
-            QImage image(filename);
+            image.load(filename, "PNG|JPG|BMP|GIF");
+
+            if (image.isNull())
+            {
+                qDebug() << "Image is null";
+            }
+
             //set orientation
             if (image.height() > image.width())
             {
@@ -151,7 +172,7 @@ void MainWindow::createPdf()
             while (file != _listFiles.end())
             {
                 filename = QString(dir.absoluteFilePath() + "/" + *file);
-                image = QImage(filename);
+                image.load(filename, "PNG|JPG|BMP|GIF");
 
                 //set orientation
                 if (image.height() > image.width())
