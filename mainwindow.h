@@ -35,8 +35,6 @@ public slots:
 
 private:
     Ui::MainWindow *ui;
-    QString _pathInput;
-    QString _pathOutput;
     QString _fileName;
     QStringList _listFiles;
     QFileInfoList _listDirs;

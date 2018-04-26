@@ -10,10 +10,6 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->btnSelectPathInput, SIGNAL(released()), this, SLOT(setPathInput()));
     connect(ui->btnSelectPathOutput, SIGNAL(released()), this, SLOT(setPathOutPut()));
     connect(ui->btnConvert, SIGNAL(released()), this, SLOT(createPdf()));
-
-    //set default output path
-    _pathOutput = QCoreApplication::applicationDirPath();
-    ui->editPathOutput->setText(_pathOutput);
 }
 
 MainWindow::~MainWindow()
@@ -23,6 +19,7 @@ MainWindow::~MainWindow()
 
 void MainWindow::setPathInput()
 {
+    QString _pathInput = ui->editPathInput->text();
     //get input directory path
     if (_pathInput.isEmpty())
     {
@@ -41,21 +38,18 @@ void MainWindow::setPathInput()
                                | QFileDialog::DontResolveSymlinks);
     }
 
-    ui->editPathInput->setText(_pathInput);
-
-    _listDirs.clear();
-    getListDirs(QDir(_pathInput), _listDirs);
+    setJpegPath(_pathInput);
 }
 
 void MainWindow::setPathOutPut()
 {
     //get output directory path
-    _pathOutput = QFileDialog::getExistingDirectory(this,
+    QString _pathOutput = QFileDialog::getExistingDirectory(this,
                                QString::fromUtf8("Открыть папку"),
                                QDir::currentPath(),
                                QFileDialog::ShowDirsOnly
                                | QFileDialog::DontResolveSymlinks);
-    ui->editPathOutput->setText(_pathOutput);
+    setPdfPath(_pathOutput);
 }
 
 QStringList MainWindow::getListFiles(QString dirName)
@@ -91,6 +85,9 @@ void MainWindow::getListDirs(const QDir& dir, QFileInfoList& list)
 void MainWindow::setJpegPath(QString &path)
 {
     ui->editPathInput->setText(path);
+
+    _listDirs.clear();
+    getListDirs(QDir(path), _listDirs);
 }
 
 void MainWindow::setPdfPath(QString &path)
@@ -123,7 +120,7 @@ void MainWindow::createPdf()
         QImage image;
         try
         {
-            QPdfWriter writer(_pathOutput + "/" + _fileName);
+            QPdfWriter writer(ui->editPathOutput->text() + "/" + _fileName);
             //add images to pdf file
             writer.setPageSize(QPagedPaintDevice::A4);
 
