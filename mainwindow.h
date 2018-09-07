@@ -16,28 +16,28 @@ class MainWindow;
 
 class MainWindow : public QMainWindow
 {
-    Q_OBJECT
+		Q_OBJECT
 
 public:
-    explicit MainWindow(QWidget *parent = 0);
-    ~MainWindow();
+		explicit MainWindow(QWidget *parent = 0);
+		~MainWindow();
 
-    QStringList getListFiles(QString dirName);
-    void getListDirs(const QDir& dirName, QFileInfoList& list);
-
-    void setJpegPath(QString&);
-    void setPdfPath(QString&);
+	void setJpegPath(QString&);
+	void setPdfPath(QString&);
 
 public slots:
-    void setPathInput();
-    void setPathOutPut();
-    void createPdf();
+		void setPathInput();
+		void setPathOutPut();
+		void createPdf();
 
 private:
-    Ui::MainWindow *ui;
-    QString _fileName;
-    QStringList _listFiles;
-    QFileInfoList _listDirs;
+		Ui::MainWindow *ui;
+
+		void fetchDirs(const QDir& dirName, QFileInfoList& list);
+		void sortFiles(QStringList& files);
+		QStringList getListFiles(QString dirName);
+
+		void showMessage(const char* message);
 };
 
 #endif // MAINWINDOW_H
