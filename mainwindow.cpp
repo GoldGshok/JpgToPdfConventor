@@ -2,213 +2,162 @@
 #include "ui_mainwindow.h"
 
 MainWindow::MainWindow(QWidget *parent) :
-    QMainWindow(parent),
-    ui(new Ui::MainWindow)
+		QMainWindow(parent),
+		ui(new Ui::MainWindow)
 {
-    ui->setupUi(this);
+		ui->setupUi(this);
 
-    connect(ui->btnSelectPathInput, SIGNAL(released()), this, SLOT(setPathInput()));
-    connect(ui->btnSelectPathOutput, SIGNAL(released()), this, SLOT(setPathOutPut()));
-    connect(ui->btnConvert, SIGNAL(released()), this, SLOT(createPdf()));
+		connect(ui->btnSelectPathInput, SIGNAL(released()), this, SLOT(setPathInput()));
+		connect(ui->btnSelectPathOutput, SIGNAL(released()), this, SLOT(setPathOutPut()));
+		connect(ui->btnConvert, SIGNAL(released()), this, SLOT(createPdf()));
 }
 
 MainWindow::~MainWindow()
 {
-    delete ui;
+		delete ui;
 }
 
 void MainWindow::setPathInput()
 {
-    QString _pathInput = ui->editPathInput->text();
-    //get input directory path
-    if (_pathInput.isEmpty())
-    {
-        _pathInput = QFileDialog::getExistingDirectory(this,
-                               QString::fromUtf8("Открыть папку"),
-                               QCoreApplication::applicationDirPath(),
-                               QFileDialog::ShowDirsOnly
-                               | QFileDialog::DontResolveSymlinks);
-    }
-    else
-    {
-        _pathInput = QFileDialog::getExistingDirectory(this,
-                               QString::fromUtf8("Открыть папку"),
-                               _pathInput,
-                               QFileDialog::ShowDirsOnly
-                               | QFileDialog::DontResolveSymlinks);
-    }
+		QString _pathInput = ui->editPathInput->text();
+		//get input directory path
+		if (_pathInput.isEmpty())
+		{
+				_pathInput = QFileDialog::getExistingDirectory(this,
+															 QString::fromUtf8("Открыть папку"),
+															 QCoreApplication::applicationDirPath(),
+															 QFileDialog::ShowDirsOnly
+															 | QFileDialog::DontResolveSymlinks);
+		}
+		else
+		{
+				_pathInput = QFileDialog::getExistingDirectory(this,
+															 QString::fromUtf8("Открыть папку"),
+															 _pathInput,
+															 QFileDialog::ShowDirsOnly
+															 | QFileDialog::DontResolveSymlinks);
+		}
 
-    setJpegPath(_pathInput);
+		setJpegPath(_pathInput);
 }
 
 void MainWindow::setPathOutPut()
 {
-    //get output directory path
-    QString _pathOutput = QFileDialog::getExistingDirectory(this,
-                               QString::fromUtf8("Открыть папку"),
-                               QDir::currentPath(),
-                               QFileDialog::ShowDirsOnly
-                               | QFileDialog::DontResolveSymlinks);
-    setPdfPath(_pathOutput);
+		//get output directory path
+		QString _pathOutput = QFileDialog::getExistingDirectory(this,
+															 QString::fromUtf8("Открыть папку"),
+															 QDir::currentPath(),
+															 QFileDialog::ShowDirsOnly
+															 | QFileDialog::DontResolveSymlinks);
+		setPdfPath(_pathOutput);
 }
 
 QStringList MainWindow::getListFiles(QString dirName)
 {
-    QDir dir(dirName);
-    //set output pdf file name
-    _fileName = dir.dirName() + ".pdf";
-    //return files name in directory
-    return dir.entryList(QStringList("*.*"), QDir::Files, QDir::Name);
+		QDir dir(dirName);
+		return dir.entryList(QStringList("*.*"), QDir::Files, QDir::Name);
 }
 
-void MainWindow::getListDirs(const QDir& dir, QFileInfoList& list)
+void MainWindow::fetchDirs(const QDir& dir, QFileInfoList& list)
 {
-    if (!dir.exists())
-        qDebug() << "Error get dir!";
+		QFileInfoList temp;
 
-    QFileInfoList temp;
+		temp.append(dir.entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot));
 
-    temp.append(dir.entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot));
+		if (temp.isEmpty())
+		{
+				list.append(QFileInfo(dir.absolutePath()));
+				return;
+		}
 
-    if (temp.isEmpty())
-    {
-        list.append(QFileInfo(dir.absolutePath()));
-        return;
-    }
-
-    foreach (QFileInfo currentDir, temp)
-    {
-        getListDirs(QDir(currentDir.absoluteFilePath()), list);
-    }
+		foreach (QFileInfo currentDir, temp)
+		{
+				fetchDirs(QDir(currentDir.absoluteFilePath()), list);
+		}
 }
 
 void MainWindow::setJpegPath(QString &path)
 {
-    ui->editPathInput->setText(path);
-
-    _listDirs.clear();
-    getListDirs(QDir(path), _listDirs);
+		ui->editPathInput->setText(path);
 }
 
 void MainWindow::setPdfPath(QString &path)
 {
-    ui->editPathOutput->setText(path);
+	ui->editPathOutput->setText(path);
+}
+
+void MainWindow::showMessage(const char* message)
+{
+	QMessageBox msgBox;
+	msgBox.setText(message);
+	msgBox.exec();
 }
 
 void MainWindow::createPdf()
 {
-    foreach (QFileInfo dir, _listDirs)
-    {
-        _listFiles = getListFiles(dir.absoluteFilePath());
-        if (!_listFiles.isEmpty())
-        {
-            QCollator collator;
+	QFileInfoList listDirs;
+	fetchDirs(QDir(ui->editPathInput->text()), listDirs);
 
-            collator.setNumericMode(true);
-            std::sort(_listFiles.begin(),
-                      _listFiles.end(),
-                      [&collator](const QString &file1, const QString &file2)
-                      {
-                        return collator.compare(file1, file2) < 0;
-                      });
-        }
-        else
-        {
-            continue;
-        }
+	foreach (QFileInfo dir, listDirs)
+	{
+		QStringList files = getListFiles(dir.absoluteFilePath());
+		if (!files.isEmpty())
+			sortFiles(files);
+		else
+			continue;
 
-        QImage image;
-        try
-        {
-            QPdfWriter writer(ui->editPathOutput->text() + "/" + _fileName);
-            //add images to pdf file
-            writer.setPageSize(QPagedPaintDevice::A4);
+		QPdfWriter writer(ui->editPathOutput->text() + "/" + dir.baseName() + ".pdf");
+		writer.setPageSize(QPagedPaintDevice::A4);
+		QPainter painter(&writer);
 
-            QStringList::iterator file = _listFiles.begin();
+		try
+		{
+			for (int i = 0; i < files.size(); ++i)
+			{
+				QString imageName = QString(dir.absoluteFilePath() + "/" + files.at(i));
+				QImage image(imageName, "PNG|JPG|BMP|GIF");
 
-            int width;
-            int height;
-            int counter = 0;
+				//set orientation
+				image.height() > image.width() ?
+							writer.setPageOrientation(QPageLayout::Portrait) :
+							writer.setPageOrientation(QPageLayout::Landscape);
 
-            QString filename(dir.absoluteFilePath() + "/" + *file);
+				painter.drawImage(QRect(0, 0,
+											writer.width(),
+											writer.height()),
+											image
+										);
 
-            image.load(filename, "PNG|JPG|BMP|GIF");
+				if (i != files.size() - 1)
+					writer.newPage();
 
-            if (image.isNull())
-            {
-                qDebug() << "Image is null";
-            }
+				ui->statusBar->showMessage(QString("Progress files directory %1: %2/%3").
+																	 arg(dir.baseName()).
+																	 arg(i + 1).
+																	 arg(files.size()));
+			}
+		}
+		catch (const std::exception& e)
+		{
+			showMessage(e.what());
+		}
 
-            //set orientation
-            if (image.height() > image.width())
-            {
-                writer.setPageOrientation(QPageLayout::Portrait);
-            }
-            else
-            {
-                writer.setPageOrientation(QPageLayout::Landscape);
-            }
+		painter.end();
+	}
 
-            width = writer.width();
-            height = writer.height();
+	showMessage("The procedure is end!");
+}
 
-            QPainter painter(&writer);
+void MainWindow::sortFiles(QStringList &files)
+{
+	QCollator collator;
+	collator.setNumericMode(true);
 
-            painter.drawImage(QRect(
-                        0,
-                        0,
-                        width,
-                        height),
-                        image
-                      );
-            file++;
-            counter++;
-
-            ui->statusBar->showMessage(QString("Progress files %1/%2").arg(counter).arg(_listFiles.size()));
-
-            while (file != _listFiles.end())
-            {
-                filename = QString(dir.absoluteFilePath() + "/" + *file);
-                image.load(filename, "PNG|JPG|BMP|GIF");
-
-                //set orientation
-                if (image.height() > image.width())
-                {
-                    writer.setPageOrientation(QPageLayout::Portrait);
-                }
-                else
-                {
-                    writer.setPageOrientation(QPageLayout::Landscape);
-                }
-
-                width = writer.width();
-                height = writer.height();
-
-                //create new pdf page
-                writer.newPage();
-
-                painter.drawImage(QRect(
-                            0,
-                            0,
-                            width,
-                            height),
-                            image
-                          );
-
-                counter++;
-                file++;
-
-                ui->statusBar->showMessage(QString("Progress files %1/%2").arg(counter).arg(_listFiles.size()));
-            }
-            painter.end();
-        }
-        catch (...)
-        {
-        }
-    }
-
-    QMessageBox msgBox;
-    msgBox.setText("The procedure is end!");
-    msgBox.exec();
+	std::sort(files.begin(),
+						files.end(),
+						[&collator](const QString &filePrev, const QString &fileNext)
+						{
+							return collator.compare(filePrev, fileNext) < 0;
+						});
 }
 
